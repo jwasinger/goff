@@ -23,11 +23,12 @@ const MulCIOS = `
 		D = C
 
 		// m = t[0]n'[0] mod W
-		m = t[0] * {{index $.all.QInverse 0}}
+		m = t[0] * {{$.V4}}[0]
 
 		// -----------------------------------
 		// Second loop
-		C = madd0(m, {{index $.all.Q 0}}, t[0])
+        //shite
+		C = madd0(m, {{$.V3}}[0], t[0])
 		{{- range $i := $.all.NbWordsIndexesNoZero}}
 			{{if eq $i $.all.NbWordsLastIndex}}
 				C, t[{{sub $i 1}}] = madd3(m, {{index $.all.Q $i}}, t[{{$i}}], C, t[{{$.all.NbWords}}])

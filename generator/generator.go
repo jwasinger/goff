@@ -72,6 +72,8 @@ func GenerateFF(F *field.Field, outputDir string) error {
 		return err
 	}
 
+    F.ASM = false
+
 	// if we generate assembly code
 	if F.ASM {
 		// generate ops.s

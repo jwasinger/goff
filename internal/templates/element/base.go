@@ -287,11 +287,11 @@ func (z *{{.ElementName}}) Neg( x *{{.ElementName}}) *{{.ElementName}} {
 
 // Generic (no ADX instructions, no AMD64) versions of multiplication and squaring algorithms
 
-func _mulGeneric(z,x,y *{{.ElementName}}) {
+func _mulGeneric(z,x,y,mod *{{.ElementName}}, uint64 modinv) {
 	{{ if .NoCarry}}
-		{{ template "mul_nocarry" dict "all" . "V1" "x" "V2" "y"}}
+		{{ template "mul_nocarry" dict "all" . "V1" "x" "V2" "y" "V3" "mod" "V4" "modinv"}}
 	{{ else }}
-		{{ template "mul_cios" dict "all" . "V1" "x" "V2" "y" "NoReturn" true}}
+		{{ template "mul_cios" dict "all" . "V1" "x" "V2" "y" "V3" "mod" "V4" "modinv" "NoReturn" true}}
 	{{ end }}
 	{{ template "reduce" . }}
 }
