@@ -20,6 +20,7 @@ func GenerateFF(F *field.Field, outputDir string) error {
 	src := []string{
 		element.Base,
 		element.Reduce,
+		element.ReduceMulModMont,
 		element.Exp,
 		element.Conv,
 		element.MulCIOS,

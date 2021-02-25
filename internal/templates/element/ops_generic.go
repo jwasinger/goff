@@ -19,8 +19,8 @@ func MulBy5(x *{{.ElementName}}) {
 }
 
 
-func mul(z, x, y *{{.ElementName}}) {
-	_mulGeneric(z, x, y)
+func mul(z, x, y, mod *{{.ElementName}}) {
+	_mulGeneric(z, x, y, mod)
 }
 
 // FromMont converts z in place (i.e. mutates) from Montgomery to regular representation
@@ -29,8 +29,8 @@ func fromMont(z *{{.ElementName}} ) {
 	_fromMontGeneric(z)
 }
 
-func add(z,  x, y *{{.ElementName}}) {
-	_addGeneric(z,x,y)
+func add(z,  x, y, mod *{{.ElementName}}) {
+	_addGeneric(z,x,y, mod)
 }
 
 func double(z,  x *{{.ElementName}}) {
@@ -38,8 +38,8 @@ func double(z,  x *{{.ElementName}}) {
 }
 
 
-func sub(z,  x, y *{{.ElementName}}) {
-	_subGeneric(z,x,y)
+func sub(z,  x, y, mod *{{.ElementName}}) {
+	_subGeneric(z,x,y, mod)
 }
 
 func neg(z,  x *{{.ElementName}}) {

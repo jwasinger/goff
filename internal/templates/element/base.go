@@ -238,8 +238,8 @@ func (z *{{.ElementName}}) SubAssign(x *{{.ElementName}}) *{{.ElementName}} {
 
 // Mul z = x * y mod q 
 // see https://hackmd.io/@zkteam/modular_multiplication
-func (z *{{.ElementName}}) Mul(x, y *{{.ElementName}}) *{{.ElementName}} {
-	mul(z, x, y)
+func (z *{{.ElementName}}) Mul(x, y, mod *{{.ElementName}}) *{{.ElementName}} {
+	mul(z, x, y, mod)
 	return z
 }
 
@@ -258,8 +258,8 @@ func (z *{{.ElementName}}) FromMont() *{{.ElementName}} {
 }
 
 // Add z = x + y mod q
-func (z *{{.ElementName}}) Add( x, y *{{.ElementName}}) *{{.ElementName}} {
-	add(z, x, y)
+func (z *{{.ElementName}}) Add( x, y, mod *{{.ElementName}}) *{{.ElementName}} {
+	add(z, x, y, mod)
 	return z 
 }
 
@@ -271,8 +271,8 @@ func (z *{{.ElementName}}) Double( x *{{.ElementName}}) *{{.ElementName}} {
 
 
 // Sub  z = x - y mod q
-func (z *{{.ElementName}}) Sub( x, y *{{.ElementName}}) *{{.ElementName}} {
-	sub(z, x, y)
+func (z *{{.ElementName}}) Sub( x, y, mod *{{.ElementName}}) *{{.ElementName}} {
+	sub(z, x, y, mod)
 	return z
 }
 
@@ -287,13 +287,14 @@ func (z *{{.ElementName}}) Neg( x *{{.ElementName}}) *{{.ElementName}} {
 
 // Generic (no ADX instructions, no AMD64) versions of multiplication and squaring algorithms
 
-func _mulGeneric(z,x,y,mod *{{.ElementName}}, uint64 modinv) {
+func _mulGeneric(z,x,y,mod *{{.ElementName}}, modinv uint64) {
 	{{ if .NoCarry}}
 		{{ template "mul_nocarry" dict "all" . "V1" "x" "V2" "y" "V3" "mod" "V4" "modinv"}}
 	{{ else }}
 		{{ template "mul_cios" dict "all" . "V1" "x" "V2" "y" "V3" "mod" "V4" "modinv" "NoReturn" true}}
 	{{ end }}
-	{{ template "reduce" . }}
+    // TODO can make the following faster and constant time
+	{{ template "reduce_mulmodmont" dict "all" . "V3" "mod"}}
 }
 
 
@@ -317,7 +318,7 @@ func _fromMontGeneric(z *{{.ElementName}}) {
 
 
 
-func _addGeneric(z,  x, y *{{.ElementName}}) {
+func _addGeneric(z,  x, y, mod *{{.ElementName}}) {
 	var carry uint64
 	{{$k := sub $.NbWords 1}}
 	z[0], carry = bits.Add64(x[0], y[0], 0)
@@ -335,15 +336,15 @@ func _addGeneric(z,  x, y *{{.ElementName}}) {
 		// if z >= q, z = z - q
 		if carry != 0 {
 			// we overflowed, so z >= q
-			z[0], carry = bits.Sub64(z[0], {{index $.Q 0}}, 0)
+			z[0], carry = bits.Sub64(z[0], mod[0], 0)
 			{{- range $i := .NbWordsIndexesNoZero}}
-				z[{{$i}}], carry = bits.Sub64(z[{{$i}}], {{index $.Q $i}}, carry)
+				z[{{$i}}], carry = bits.Sub64(z[{{$i}}], mod[{{$i}}], carry)
 			{{- end}}
 			return 
 		}
 	{{- end}}
 
-	{{ template "reduce" .}}
+	{{ template "reduce_mulmodmont" dict "all" . "V3" "mod"}}
 }
 
 func _doubleGeneric(z,  x *{{.ElementName}}) {
@@ -376,20 +377,20 @@ func _doubleGeneric(z,  x *{{.ElementName}}) {
 }
 
 
-func _subGeneric(z,  x, y *{{.ElementName}}) {
+func _subGeneric(z,  x, y, mod *{{.ElementName}}) {
 	var b uint64
 	z[0], b = bits.Sub64(x[0], y[0], 0)
-	{{- range $i := .NbWordsIndexesNoZero}}
+	{{- range $i := .NbWordsIndexesFull}}
 		z[{{$i}}], b = bits.Sub64(x[{{$i}}], y[{{$i}}], b)
 	{{- end}}
 	if b != 0 {
 		var c uint64
-		z[0], c = bits.Add64(z[0], {{index $.Q 0}}, 0)
-		{{- range $i := .NbWordsIndexesNoZero}}
+		z[0], c = bits.Add64(z[0], mod[0], 0)
+		{{- range $i := .NbWordsIndexesFull}}
 			{{- if eq $i $.NbWordsLastIndex}}
-				z[{{$i}}], _ = bits.Add64(z[{{$i}}], {{index $.Q $i}}, c)
+				z[{{$i}}], _ = bits.Add64(z[{{$i}}], mod[{{$i}}], c)
 			{{- else}}
-				z[{{$i}}], c = bits.Add64(z[{{$i}}], {{index $.Q $i}}, c)
+				z[{{$i}}], c = bits.Add64(z[{{$i}}], mod[{{$i}}], c)
 			{{- end}}
 		{{- end}}
 	}
