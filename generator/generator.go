@@ -21,20 +21,18 @@ func GenerateFF(F *field.Field, outputDir string) error {
 		element.Base,
 		element.Reduce,
 		element.ReduceMulModMont,
-		element.Exp,
-		element.Conv,
-		element.MulCIOS,
+		//element.MulCIOS,
 		element.MulNoCarry,
-		element.Sqrt,
-		element.Inverse,
 	}
 
 	// test file templates
 	tst := []string{
 		element.MulCIOS,
+/*
 		element.MulNoCarry,
 		element.Reduce,
 		element.Test,
+*/
 	}
 
 	// output files
